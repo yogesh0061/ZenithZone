@@ -9,5 +9,6 @@ router
     .patch("/:id",productController.updateById)
     .patch("/undelete/:id",productController.undeleteById)
     .delete("/:id",productController.deleteById)
+    .post("/filter",productController.getByName)
 
 module.exports=router

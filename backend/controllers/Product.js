@@ -102,3 +102,18 @@ exports.deleteById=async(req,res)=>{
 }
 
 
+exports.getByName = async(req, res) =>{
+    try {
+        
+    const limit =7;
+    const searchedProducts = await Product.find({"title" : { "$regex": `${req.body.textFilter}`, "$options": "i" }}, {title : 1,category : 1,}).populate("category").limit(limit)
+    res.status(200).json(searchedProducts)
+        
+    } catch (error) {
+        res.status(500).json({message:'Error restoring product, please try again later'})
+        
+    }
+    
+}
+
+

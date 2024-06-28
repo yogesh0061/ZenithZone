@@ -10,11 +10,13 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  Autocomplete,
   Badge,
   Button,
   InputBase,
   ListItemIcon,
   Stack,
+  TextField,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
@@ -38,6 +40,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 import HomeIcon from "@mui/icons-material/Home";
 import Logout from "@mui/icons-material/Logout";
+import { axiosi } from "../../../config/axios";
 
 const SpacingDiv = styled("div")(({ theme }) => theme.mixins.toolbar);
 
@@ -83,14 +86,15 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export const Navbar = ({ isProductList = false }) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const mobileMenuId = "primary-search-account-menu-mobile";
 
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const [searchText, setSearchText] = React.useState("");
+  const [productList, setProductList] = React.useState([{title : "iphone" , _id : "sdkfjhsdlk"}]);
   const userInfo = useSelector(selectUserInfo);
   const cartItems = useSelector(selectCartItems);
   const loggedInUser = useSelector(selectLoggedInUser);
@@ -146,6 +150,26 @@ export const Navbar = ({ isProductList = false }) => {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 
+  const getProducts = async() =>{
+    try {
+      const response = await axiosi.post("/products/filter", {
+        textFilter: searchText,
+      });
+      setProductList(response.data);
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  React.useEffect(()=>{
+    getProducts();
+  }, [searchText])
+
+  const onChangeText = async (e) => {
+    const text = e.target.value;
+    setSearchText(text);
+    
+  };
+
   const menuId = "primary-search-account-menu";
   const RenderMenu = () => (
     <Menu
@@ -184,18 +208,16 @@ export const Navbar = ({ isProductList = false }) => {
       anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
     >
       {settings.map((item) => (
-
-        <MenuItem onClick= {()=>{  
-          navigate(item.to);
-          handleMenuClose()}}>
-          <ListItemIcon>
-            {item.icon}
-          </ListItemIcon>
+        <MenuItem
+          onClick={() => {
+            navigate(item.to);
+            handleMenuClose();
+          }}
+        >
+          <ListItemIcon>{item.icon}</ListItemIcon>
           {item.name}
         </MenuItem>
-
-      ) )}
-      
+      ))}
     </Menu>
   );
 
@@ -211,7 +233,7 @@ export const Navbar = ({ isProductList = false }) => {
             sx={{ mr: 2 }}
             onClick={handleToggleFilters}
           >
-            <MenuIcon/>
+            <MenuIcon />
           </IconButton>
           <Typography
             variant="h6"
@@ -221,14 +243,33 @@ export const Navbar = ({ isProductList = false }) => {
           >
             MERN STORE
           </Typography>
+          
           <Search>
-            <SearchIconWrapper>
+          <Stack>
+            {/* <SearchIconWrapper>
               <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
+            </SearchIconWrapper> */}
+
+            <Autocomplete
+            sx={{width : 400}}
+              id="free-solo-demo"
+              autoComplete
+              autoHighlight
+              autoSelect
+              size="medium"
+              onInputChange={onChangeText}
+              options={productList.map((option) => option.title)}
+              renderInput={(params) => (
+                <TextField {...params} label="search Products" />
+              )}
+            />
+            </Stack>
+            {/* <StyledInputBase
               placeholder="Search Products…"
               inputProps={{ "aria-label": "search" }}
-            />
+              value={searchText}
+              onChange={onChangeText}
+            /> */}
           </Search>
           <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: { xs: "none", md: "flex" } }}>
@@ -283,8 +324,6 @@ export const Navbar = ({ isProductList = false }) => {
         </Toolbar>
       </AppBar>
       <SpacingDiv></SpacingDiv>
-
-      
     </div>
   );
 };
